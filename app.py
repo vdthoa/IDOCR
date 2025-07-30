@@ -16,7 +16,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OCR_SPACE_API_KEY = os.getenv("OCR_SPACE_API_KEY")
 
 # Khởi tạo OpenAI client
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
+openai.api_key = OPENAI_API_KEY
+client = openai
 
 def ocr_space_file(filename, overlay=False, api_key=OCR_SPACE_API_KEY, language='eng'):
     """ OCR.space API request with local file. """
