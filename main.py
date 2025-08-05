@@ -38,6 +38,7 @@ def ocr_space_file(file_content: bytes, filename: str, api_key: str = OCR_SPACE_
             'apikey': api_key,
             'language': language,
             'detectOrientation': 'true',
+            'scale': 'true',
             'OCREngine': 2
         }
         files = {filename: file_content}
@@ -92,10 +93,8 @@ def parse_ocr_to_json(ocr_text: str, document_type: str = "identity_card") -> di
     if document_type == "identity_card":
         ocr_text = preprocess_ocr_text(ocr_text)
 
-        print(f"test {ocr_text}")
-
         prompt = f"""
-        Phân tích văn bản OCR từ giấy tờ tùy thân Việt Nam, sửa lỗi ký tự tiếng Việt và địa danh, sau đó trích xuất thông tin vào JSON theo định dạng sau:
+        Phân tích văn bản OCR từ giấy tờ tùy thân Việt Nam. **Sửa lỗi ký tự tiếng Việt và chuẩn hóa địa danh về đúng tên hành chính Việt Nam**. Sau đó trích xuất các thông tin vào JSON theo định dạng sau:
 
         ```json
         {{
@@ -122,17 +121,19 @@ def parse_ocr_to_json(ocr_text: str, document_type: str = "identity_card") -> di
         ```
 
         Hướng dẫn:
-    -Trích xuất các trường: mã định danh (Số/No./ID), họ tên, ngày sinh, giới tính, quốc tịch, nơi thường trú, nơi sinh, quê quán, ngày cấp, ngày hết hạn.
-    -Chuẩn hóa ngày tháng từ DD/MM/YYYY hoặc DD-MM-YYYY sang YYYY-MM-DD.
-    -Chuẩn hóa giới tính: "Male" → "Nam", "Female" → "Nữ".
-    -Địa chỉ như Quê quán hoặc Nơi thường trú đã được gộp thành một dòng, chứa dấu phẩy giữa các phần (ví dụ: "14/20 Hoàng Diệu, Tây Lộc, Thành phố Huế, Thừa Thiên Huế").
-    -Bỏ qua các dòng tiêu đề như "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM" hoặc "CĂN CƯỚC CÔNG DÂN".
-    -Nếu thông tin không rõ ràng hoặc thiếu, để null.
-    -Chỉ trả về JSON đúng định dạng, không thêm văn bản thừa.
+        -Trích xuất các trường: mã định danh (Số/No./ID), họ tên, ngày sinh, giới tính, quốc tịch, nơi thường trú, nơi sinh, quê quán, ngày cấp, ngày hết hạn.
+        -Chuẩn hóa ngày tháng từ DD/MM/YYYY hoặc DD-MM-YYYY sang YYYY-MM-DD.
+        -Chuẩn hóa giới tính: "Male" → "Nam", "Female" → "Nữ".
+        -Địa chỉ như Quê quán hoặc Nơi thường trú đã được gộp thành một dòng, chứa dấu phẩy giữa các phần (ví dụ: "14/20 Hoàng Diệu, Tây Lộc, Thành phố Huế, Thừa Thiên Huế").
+        -Bỏ qua các dòng tiêu đề như "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", "CĂN CƯỚC CÔNG DÂN"…
+        -Nếu phát hiện tên địa danh sai do OCR (ví dụ: "Phủ Thượng"), hãy tự động sửa về đúng tên hành chính thực tế ("Phú Thượng").
+        -Có thể sử dụng kiến thức về địa danh Việt Nam để sửa lỗi như: "Dién Biên Döng" → "Điện Biên Đông", "Thùa Thiên Huế" → "Thừa Thiên Huế", "Tp. Hô Chi Minh" → "TP. Hồ Chí Minh"...
+        -Nếu thông tin không rõ ràng hoặc thiếu, để giá trị là null.
+        -Chỉ trả về JSON hợp lệ, không thêm bất kỳ văn bản mô tả nào khác.
         """
     elif document_type == "motorcycle":
         prompt = f"""
-        Phân tích văn bản OCR từ giấy đăng ký xe máy Việt Nam, sửa lỗi ký tự tiếng Việt và địa danh, trả về JSON hợp lệ:
+        Phân tích văn bản OCR từ giấy đăng ký xe máy Việt Nam, **Sửa lỗi ký tự tiếng Việt và chuẩn hóa địa danh về đúng tên hành chính Việt Nam**, trả về JSON hợp lệ:
 
         ```json
         {{
@@ -165,7 +166,7 @@ def parse_ocr_to_json(ocr_text: str, document_type: str = "identity_card") -> di
         """
     elif document_type == "car":
         prompt = f"""
-        Phân tích văn bản OCR từ giấy đăng ký xe ô tô Việt Nam, sửa lỗi ký tự tiếng Việt và địa danh, trả về JSON hợp lệ:
+        Phân tích văn bản OCR từ giấy đăng ký xe ô tô Việt Nam, **Sửa lỗi ký tự tiếng Việt và chuẩn hóa địa danh về đúng tên hành chính Việt Nam**, trả về JSON hợp lệ:
 
         ```json
         {{
@@ -199,7 +200,7 @@ def parse_ocr_to_json(ocr_text: str, document_type: str = "identity_card") -> di
         """
     elif document_type == "car-inspection":
         prompt = f"""
-        Phân tích văn bản OCR từ giấy đăng kiểm xe ô tô Việt Nam, sửa lỗi ký tự tiếng Việt và địa danh, trả về JSON hợp lệ:
+        Phân tích văn bản OCR từ giấy đăng kiểm xe ô tô Việt Nam, **Sửa lỗi ký tự tiếng Việt và chuẩn hóa địa danh về đúng tên hành chính Việt Nam**, trả về JSON hợp lệ:
 
         ```json
         {{
