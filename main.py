@@ -94,7 +94,7 @@ def parse_ocr_to_json(ocr_text: str, document_type: str = "identity_card") -> di
         ocr_text = preprocess_ocr_text(ocr_text)
 
         prompt = f"""
-        Phân tích văn bản OCR từ giấy tờ tùy thân Việt Nam. **Sửa lỗi ký tự tiếng Việt và chuẩn hóa địa danh về đúng tên hành chính Việt Nam**. Sau đó trích xuất các thông tin vào JSON theo định dạng sau:
+        Phân tích văn bản OCR từ giấy tờ tùy thân Việt Nam. **Sửa lỗi ký tự tiếng Việt và chuẩn hóa họ tên và địa danh về đúng tên hành chính Việt Nam**. Sau đó trích xuất các thông tin vào JSON theo định dạng sau:
 
         ```json
         {{
@@ -133,7 +133,7 @@ def parse_ocr_to_json(ocr_text: str, document_type: str = "identity_card") -> di
         """
     elif document_type == "motorcycle":
         prompt = f"""
-        Phân tích văn bản OCR từ giấy đăng ký xe máy Việt Nam, **Sửa lỗi ký tự tiếng Việt và chuẩn hóa địa danh về đúng tên hành chính Việt Nam**, trả về JSON hợp lệ:
+        Phân tích văn bản OCR từ giấy đăng ký xe máy Việt Nam, **Sửa lỗi ký tự tiếng Việt và chuẩn hóa  họ tên và địa danh về đúng tên hành chính Việt Nam**, trả về JSON hợp lệ:
 
         ```json
         {{
@@ -166,7 +166,7 @@ def parse_ocr_to_json(ocr_text: str, document_type: str = "identity_card") -> di
         """
     elif document_type == "car":
         prompt = f"""
-        Phân tích văn bản OCR từ giấy đăng ký xe ô tô Việt Nam, **Sửa lỗi ký tự tiếng Việt và chuẩn hóa địa danh về đúng tên hành chính Việt Nam**, trả về JSON hợp lệ:
+        Phân tích văn bản OCR từ giấy đăng ký xe ô tô Việt Nam, **Sửa lỗi ký tự tiếng Việt và chuẩn hóa  họ tên và  địa danh về đúng tên hành chính Việt Nam**, trả về JSON hợp lệ:
 
         ```json
         {{
@@ -200,7 +200,7 @@ def parse_ocr_to_json(ocr_text: str, document_type: str = "identity_card") -> di
         """
     elif document_type == "car-inspection":
         prompt = f"""
-        Phân tích văn bản OCR từ giấy đăng kiểm xe ô tô Việt Nam, **Sửa lỗi ký tự tiếng Việt và chuẩn hóa địa danh về đúng tên hành chính Việt Nam**, trả về JSON hợp lệ:
+        Phân tích văn bản OCR từ giấy đăng kiểm xe ô tô Việt Nam, **Sửa lỗi ký tự tiếng Việt và chuẩn hóa  họ tên và  địa danh về đúng tên hành chính Việt Nam**, trả về JSON hợp lệ:
 
         ```json
         {{
