@@ -379,7 +379,7 @@ async def process_vehicle_registration(
         logger.info("Bắt đầu xử lý OCR cho giấy đăng ký xe máy")
         ocr_result = await asyncio.get_event_loop().run_in_executor(
             ThreadPoolExecutor(max_workers=1), 
-            ocr_space_file, 
+            ocr_id_card, 
             content, 
             image.filename
         )
@@ -420,7 +420,7 @@ async def process_vehicle_registration(
         logger.info("Bắt đầu xử lý OCR cho giấy đăng ký ô tô")
         ocr_result = await asyncio.get_event_loop().run_in_executor(
             ThreadPoolExecutor(max_workers=1), 
-            ocr_space_file, 
+            ocr_id_card, 
             content, 
             image.filename
         )
@@ -461,7 +461,7 @@ async def process_vehicle_registration(
         logger.info("Bắt đầu xử lý OCR cho giấy đăng kiểm ô tô")
         ocr_result = await asyncio.get_event_loop().run_in_executor(
             ThreadPoolExecutor(max_workers=1), 
-            ocr_space_file, 
+            ocr_id_card, 
             content, 
             image.filename
         )
