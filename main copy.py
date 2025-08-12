@@ -8,8 +8,6 @@ from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
 import os
-from google.cloud import vision
-import io
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -31,48 +29,25 @@ if not OPENAI_API_KEY or not OCR_SPACE_API_KEY:
 # Initialize OpenAI client
 openai.api_key = OPENAI_API_KEY
 client = openai
-# Đường dẫn đến file key JSON của bạn
-client_vision = vision.ImageAnnotatorClient.from_service_account_file("service_account.json")
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-app = FastAPI(title="Vietnamese ID Card and Vehicle Registration OCR API")
-
-# Load environment variables from .env file
-load_dotenv()
-
-# Retrieve API keys from environment variables
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-# Check if API keys exist
-if not OPENAI_API_KEY:
-    raise Exception("Thiếu OPENAI_API_KEY trong biến môi trường")
-
-# Initialize OpenAI client
-openai.api_key = OPENAI_API_KEY
-client_openai = openai
-
-# Initialize Google Cloud Vision client
-client_vision = vision.ImageAnnotatorClient.from_service_account_file("service_account.json")
-
-def ocr_id_card(file_content: bytes, filename: str):
+def ocr_space_file(file_content: bytes, filename: str, api_key: str = OCR_SPACE_API_KEY, language: str = 'eng'):
+    """ OCR.space API request with file content. """
     try:
-        image = vision.Image(content=file_content)
-        response = client_vision.text_detection(image=image)
-        texts = response.text_annotations
-
-        if not texts:
-            logger.warning(f"Không tìm thấy văn bản trong hình ảnh: {filename}")
-            return ""
-
-        full_text = texts[0].description
-        logger.info(f"OCR thành công cho file: {filename}")
-        return full_text
-    except Exception as e:
-        logger.error(f"Lỗi khi gọi Google Cloud Vision API: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Lỗi Google Cloud Vision API: {str(e)}")
+        payload = {
+            'isOverlayRequired': False,
+            'apikey': api_key,
+            'language': language,
+            'detectOrientation': 'true',
+            'scale': 'true',
+            'OCREngine': 2
+        }
+        files = {filename: file_content}
+        r = requests.post('https://api.ocr.space/parse/image', files=files, data=payload)
+        r.raise_for_status()
+        return r.content.decode()
+    except requests.RequestException as e:
+        logger.error(f"Lỗi khi gọi OCR.space API: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Lỗi OCR.space API: {str(e)}")
 
 def fix_json_string(json_string: str) -> str:
     """ Fix invalid JSON string (single quotes, malformed format). """
@@ -336,8 +311,8 @@ async def process_id_card(
         logger.info("Bắt đầu xử lý OCR cho hình ảnh")
         with ThreadPoolExecutor(max_workers=2) as executor:
             loop = asyncio.get_event_loop()
-            front_task = loop.run_in_executor(executor, ocr_id_card, front_content, front_image.filename)
-            back_task = loop.run_in_executor(executor, ocr_id_card, back_content, back_image.filename)
+            front_task = loop.run_in_executor(executor, ocr_space_file, front_content, front_image.filename)
+            back_task = loop.run_in_executor(executor, ocr_space_file, back_content, back_image.filename)
             front_ocr, back_ocr = await asyncio.gather(front_task, back_task)
         
         front_result = parse_ocr_to_json(front_ocr, document_type="identity_card")
